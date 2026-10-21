@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Магазин книг</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      background-color: #f4f6f8;
+      color: #333;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    /* Стилі для контейнера табів */
+    .tabs-container {
+      max-width: 1000px;
+      margin: 0 auto;
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      overflow: hidden;
+    }
+
+    .tabs-nav {
+      display: flex;
+      background-color: #e9ecef;
+      border-bottom: 2px solid #dee2e6;
+    }
+
+    .tab-button {
+      padding: 12px 24px;
+      border: none;
+      background: none;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: bold;
+      color: #495057;
+      transition: background-color 0.2s, color 0.2s;
+      outline: none;
+    }
+
+    .tab-button:hover {
+      background-color: #ced4da;
+    }
+
+    .tab-button.active {
+      background-color: #007bff;
+      color: #ffffff;
+    }
+
+    /* Контент табів */
+    .tab-content {
+      display: none;
+      padding: 20px;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    .tab-header-actions {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+
+    .btn-add {
+      background-color: #28a745;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      font-size: 14px;
+      font-weight: bold;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+
+    .btn-add:hover {
+      background-color: #218838;
+    }
+
+    /* Стилі для таблиць */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+
+    th, td {
+      border: 1px solid #dee2e6;
+      padding: 10px 12px;
+      text-align: left;
+    }
+
+    th {
+      background-color: #f8f9fa;
+      color: #212529;
+    }
+
+    tr:nth-child(even) {
+      background-color: #f9f9f9;
+    }
+
+    tr:hover {
+      background-color: #f1f1f1;
+    }
+
+    /* Попап (Модальне вікно) */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+
+    .modal-overlay.active {
+      display: flex;
+    }
+
+    .modal-content {
+      background: #fff;
+      padding: 25px;
+      border-radius: 8px;
+      width: 100%;
+      max-width: 450px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+      position: relative;
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      border-bottom: 1px solid #eee;
+      padding-bottom: 10px;
+    }
+
+    .modal-header h3 {
+      margin: 0;
+    }
+
+    .close-btn {
+      background: none;
+      border: none;
+      font-size: 20px;
+      cursor: pointer;
+      color: #888;
+    }
+
+    .close-btn:hover {
+      color: #000;
+    }
+
+    .form-group {
+      margin-bottom: 15px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+      font-size: 14px;
+    }
+
+    .form-group input[type="text"],
+    .form-group input[type="number"],
+    .form-group input[type="date"],
+    .form-group select {
+      width: 100%;
+      padding: 8px 10px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      box-sizing: border-box;
+    }
+
+    .form-group.checkbox-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .form-group.checkbox-group label {
+      margin-bottom: 0;
+    }
+
+    .form-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    .btn-submit {
+      background-color: #007bff;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .btn-submit:hover {
+      background-color: #0056b3;
+    }
+
+    .btn-cancel {
+      background-color: #6c757d;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .btn-cancel:hover {
+      background-color: #5a6268;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Система управління мережею книжкових магазинів</h1>
+
+  <div class="tabs-container">
+    <!-- Навігація табів -->
+    <div class="tabs-nav">
+      <button class="tab-button active" onclick="openTab(event, 'books-tab')">Книги</button>
+      <button class="tab-button" onclick="openTab(event, 'employees-tab')">Співробітники</button>
+      <button class="tab-button" onclick="openTab(event, 'stores-tab')">Магазини</button>
+    </div>
+
+    <!-- Таб: Книги -->
+    <div id="books-tab" class="tab-content active">
+      <div class="tab-header-actions">
+        <h2>Список книг</h2>
+        <button class="btn-add" onclick="openModal('books')">+ Додати книгу</button>
+      </div>
+      <div id="books-table-container"></div>
+    </div>
+
+    <!-- Таб: Співробітники -->
+    <div id="employees-tab" class="tab-content">
+      <div class="tab-header-actions">
+        <h2>Список співробітників</h2>
+        <button class="btn-add" onclick="openModal('employees')">+ Додати співробітника</button>
+      </div>
+      <div id="employees-table-container"></div>
+    </div>
+
+    <!-- Таб: Магазини -->
+    <div id="stores-tab" class="tab-content">
+      <div class="tab-header-actions">
+        <h2>Список магазинів</h2>
+        <button class="btn-add" onclick="openModal('stores')">+ Додати магазин</button>
+      </div>
+      <div id="stores-table-container"></div>
+    </div>
+  </div>
+
+  <!-- Модальне вікно (Попап) -->
+  <div id="modal-overlay" class="modal-overlay">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="modal-title">Додати запис</h3>
+        <button class="close-btn" onclick="closeModal()">&times;</button>
+      </div>
+      <form id="dynamic-form" onsubmit="handleFormSubmit(event)">
+        <div id="form-fields"></div>
+        <div class="form-actions">
+          <button type="button" class="btn-cancel" onclick="closeModal()">Скасувати</button>
+          <button type="submit" class="btn-submit">Зберегти</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    // 1. Початкові дані
+    const booksData = [
+      { id: "BK-001", name: "Кобзар", author: "Тарас Шевченко", price: 350, storeAddress: "вул. Хрещатик, 10" },
+      { id: "BK-002", name: "Тіні забутих предків", author: "Михайло Коцюбинський", price: 280, storeAddress: "просп. Науки, 15" },
+      { id: "BK-003", name: "Місто", author: "Валеріян Підмогильний", price: 310, storeAddress: "вул. Хрещатик, 10" }
+    ];
+
+    const employeesData = [
+      { fullName: "Іваненко Іван Іванович", position: "Продавець", hireDate: "2021-05-12", onVacation: false, storeAddress: "вул. Хрещатик, 10" },
+      { fullName: "Петренко Олена Сергіївна", position: "Бухгалтер", hireDate: "2019-03-01", onVacation: true, storeAddress: "вул. Хрещатик, 10" },
+      { fullName: "Сидоренко Василь Петрович", position: "Охоронець", hireDate: "2022-11-10", onVacation: false, storeAddress: "просп. Науки, 15" }
+    ];
+
+    const storesData = [
+      { name: "Книжковий Рай - Центр", address: "вул. Хрещатик, 10", hasBookcrossing: true, hasReadingRoom: true },
+      { name: "Книжковий Рай - Академічний", address: "просп. Науки, 15", hasBookcrossing: true, hasReadingRoom: false }
+    ];
+
+    // Конфігурація полів для динамічного створення форм у попапі
+    const entityConfigs = {
+      books: {
+        title: "Додати нову книгу",
+        fields: [
+          { name: "id", label: "Код товару", type: "text", required: true },
+          { name: "name", label: "Назва", type: "text", required: true },
+          { name: "author", label: "Автор", type: "text", required: true },
+          { name: "price", label: "Ціна (грн)", type: "number", required: true },
+          { name: "storeAddress", label: "Адреса магазина", type: "text", required: true }
+        ]
+      },
+      employees: {
+        title: "Додати нового співробітника",
+        fields: [
+          { name: "fullName", label: "ПІБ", type: "text", required: true },
+          { name: "position", label: "Посада", type: "select", options: ["Продавець", "Бухгалтер", "Касир", "Охоронець"], required: true },
+          { name: "hireDate", label: "Дата найму", type: "date", required: true },
+          { name: "onVacation", label: "У відпустці", type: "checkbox" },
+          { name: "storeAddress", label: "Адреса магазина", type: "text", required: true }
+        ]
+      },
+      stores: {
+        title: "Додати новий магазин",
+        fields: [
+          { name: "name", label: "Назва", type: "text", required: true },
+          { name: "address", label: "Адреса магазина", type: "text", required: true },
+          { name: "hasBookcrossing", label: "Наявність буккросінгу", type: "checkbox" },
+          { name: "hasReadingRoom", label: "Наявність читального залу", type: "checkbox" }
+        ]
+      }
+    };
+
+    let currentEntity = null; // Поточна сутність, до якої додаємо дані
+
+    // 2. Функція створення таблиці
+    function createTable(headers, data, keys) {
+      let table = document.createElement('table');
+      let thead = document.createElement('thead');
+      let tbody = document.createElement('tbody');
+
+      let headerRow = document.createElement('tr');
+      for (let i = 0; i < headers.length; i++) {
+        let th = document.createElement('th');
+        th.textContent = headers[i];
+        headerRow.appendChild(th);
+      }
+      thead.appendChild(headerRow);
+
+      for (let i = 0; i < data.length; i++) {
+        let row = document.createElement('tr');
+        let item = data[i];
+
+        for (let j = 0; j < keys.length; j++) {
+          let td = document.createElement('td');
+          let val = item[keys[j]];
+
+          if (typeof val === 'boolean') {
+            td.textContent = val ? 'Так' : 'Ні';
+          } else {
+            td.textContent = val;
+          }
+
+          row.appendChild(td);
+        }
+        tbody.appendChild(row);
+      }
+
+      table.appendChild(thead);
+      table.appendChild(tbody);
+      return table;
+    }
+
+    // 3. Рендеринг усіх таблиць
+    function renderAllTables() {
+      // Книги
+      let booksContainer = document.getElementById('books-table-container');
+      booksContainer.innerHTML = '';
+      let booksHeaders = ["Код товару", "Назва", "Автор", "Ціна (грн)", "Адреса магазина"];
+      let booksKeys = ["id", "name", "author", "price", "storeAddress"];
+      booksContainer.appendChild(createTable(booksHeaders, booksData, booksKeys));
+
+      // Співробітники
+      let empContainer = document.getElementById('employees-table-container');
+      empContainer.innerHTML = '';
+      let empHeaders = ["ПІБ", "Посада", "Дата найму", "Відпустка", "Адреса магазина"];
+      let empKeys = ["fullName", "position", "hireDate", "onVacation", "storeAddress"];
+      empContainer.appendChild(createTable(empHeaders, employeesData, empKeys));
+
+      // Магазини
+      let storesContainer = document.getElementById('stores-table-container');
+      storesContainer.innerHTML = '';
+      let storesHeaders = ["Назва", "Адреса магазина", "Наявність буккросінгу", "Наявність читального залу"];
+      let storesKeys = ["name", "address", "hasBookcrossing", "hasReadingRoom"];
+      storesContainer.appendChild(createTable(storesHeaders, storesData, storesKeys));
+    }
+
+    // 4. Перемикання табів
+    function openTab(event, tabId) {
+      let tabContents = document.querySelectorAll('.tab-content');
+      for (let i = 0; i < tabContents.length; i++) {
+        tabContents[i].classList.remove('active');
+      }
+
+      let tabButtons = document.querySelectorAll('.tab-button');
+      for (let i = 0; i < tabButtons.length; i++) {
+        tabButtons[i].classList.remove('active');
+      }
+
+      document.getElementById(tabId).classList.add('active');
+      event.currentTarget.classList.add('active');
+    }
+
+    // 5. Логіка Модального Вікна (Попапу)
+    function openModal(entityType) {
+      currentEntity = entityType;
+      let config = entityConfigs[entityType];
+      
+      document.getElementById('modal-title').textContent = config.title;
+      let fieldsContainer = document.getElementById('form-fields');
+      fieldsContainer.innerHTML = ''; // Очищаємо попередні поля
+
+      // Генерація HTML елементів форми на основі конфігурації
+      for (let i = 0; i < config.fields.length; i++) {
+        let field = config.fields[i];
+        let group = document.createElement('div');
+        group.className = 'form-group';
+
+        let label = document.createElement('label');
+        label.textContent = field.label;
+
+        let input;
+
+        if (field.type === 'select') {
+          input = document.createElement('select');
+          input.name = field.name;
+          for (let j = 0; j < field.options.length; j++) {
+            let opt = document.createElement('option');
+            opt.value = field.options[j];
+            opt.textContent = field.options[j];
+            input.appendChild(opt);
+          }
+        } else if (field.type === 'checkbox') {
+          group.classList.add('checkbox-group');
+          input = document.createElement('input');
+          input.type = 'checkbox';
+          input.name = field.name;
+        } else {
+          input = document.createElement('input');
+          input.type = field.type;
+          input.name = field.name;
+          if (field.type === 'number') {
+            input.min = "0";
+            input.step = "any";
+          }
+        }
+
+        if (field.required) {
+          input.required = true;
+        }
+
+        if (field.type === 'checkbox') {
+          group.appendChild(input);
+          group.appendChild(label);
+        } else {
+          group.appendChild(label);
+          group.appendChild(input);
+        }
+
+        fieldsContainer.appendChild(group);
+      }
+
+      document.getElementById('modal-overlay').classList.add('active');
+    }
+
+    function closeModal() {
+      document.getElementById('modal-overlay').classList.remove('active');
+      document.getElementById('dynamic-form').reset();
+      currentEntity = null;
+    }
+
+    // 6. Обробка відправки форми та збереження нових даних
+    function handleFormSubmit(event) {
+      event.preventDefault();
+
+      let form = event.target;
+      let config = entityConfigs[currentEntity];
+      let newItem = {};
+
+      for (let i = 0; i < config.fields.length; i++) {
+        let field = config.fields[i];
+        let element = form.elements[field.name];
+
+        if (field.type === 'checkbox') {
+          newItem[field.name] = element.checked;
+        } else if (field.type === 'number') {
+          newItem[field.name] = parseFloat(element.value);
+        } else {
+          newItem[field.name] = element.value.trim();
+        }
+      }
+
+      // Додаємо новий об'єкт у відповідний масив
+      if (currentEntity === 'books') {
+        booksData.push(newItem);
+      } else if (currentEntity === 'employees') {
+        employeesData.push(newItem);
+      } else if (currentEntity === 'stores') {
+        storesData.push(newItem);
+      }
+
+      // Перемальовуємо таблиці
+      renderAllTables();
+
+      // Закриваємо попап
+      closeModal();
+    }
+
+    // Ініціалізація виводу даних при завантаженні
+    window.onload = function() {
+      renderAllTables();
+    };
+  </script>
+
+</body>
+</html>

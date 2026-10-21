@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Магазин книг</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      background-color: #f4f6f8;
+      color: #333;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    /* Стилі для панелі табів */
+    .tabs-container {
+      max-width: 1000px;
+      margin: 0 auto;
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      overflow: hidden;
+    }
+
+    .tabs-nav {
+      display: flex;
+      background-color: #e9ecef;
+      border-bottom: 2px solid #dee2e6;
+    }
+
+    .tab-button {
+      padding: 12px 24px;
+      border: none;
+      background: none;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: bold;
+      color: #495057;
+      transition: background-color 0.2s, color 0.2s;
+      outline: none;
+    }
+
+    .tab-button:hover {
+      background-color: #ced4da;
+    }
+
+    .tab-button.active {
+      background-color: #007bff;
+      color: #ffffff;
+    }
+
+    /* Контент табів */
+    .tab-content {
+      display: none;
+      padding: 20px;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    /* Стилі для таблиць */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+
+    th, td {
+      border: 1px solid #dee2e6;
+      padding: 10px 12px;
+      text-align: left;
+    }
+
+    th {
+      background-color: #f8f9fa;
+      color: #212529;
+    }
+
+    tr:nth-child(even) {
+      background-color: #f9f9f9;
+    }
+
+    tr:hover {
+      background-color: #f1f1f1;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Система управління мережею книжкових магазинів</h1>
+
+  <div class="tabs-container">
+    <!-- Навігація табів -->
+    <div class="tabs-nav">
+      <button class="tab-button active" onclick="openTab(event, 'books-tab')">Книги</button>
+      <button class="tab-button" onclick="openTab(event, 'employees-tab')">Співробітники</button>
+      <button class="tab-button" onclick="openTab(event, 'stores-tab')">Магазини</button>
+    </div>
+
+    <!-- Вміст табів з таблицями -->
+    <div id="books-tab" class="tab-content active">
+      <h2>Список книг</h2>
+      <div id="books-table-container"></div>
+    </div>
+
+    <div id="employees-tab" class="tab-content">
+      <h2>Список співробітників</h2>
+      <div id="employees-table-container"></div>
+    </div>
+
+    <div id="stores-tab" class="tab-content">
+      <h2>Список магазинів</h2>
+      <div id="stores-table-container"></div>
+    </div>
+  </div>
+
+  <script>
+    // 1. Вхідні дані:
+    const booksData = [
+      { id: "BK-001", name: "Кобзар", author: "Тарас Шевченко", price: 350, storeAddress: "вул. Хрещатик, 10" },
+      { id: "BK-002", name: "Тіні забутих предків", author: "Михайло Коцюбинський", price: 280, storeAddress: "просп. науки, 15" },
+      { id: "BK-003", name: "Місто", author: "Валеріян Підмогильний", price: 310, storeAddress: "вул. Хрещатик, 10" }
+    ];
+
+    const employeesData = [
+      { fullName: "Іваненко Іван Іванович", position: "Продавець", hireDate: "2021-05-12", onVacation: false, storeAddress: "вул. Хрещатик, 10" },
+      { fullName: "Петренко Олена Сергіївна", position: "Бухгалтер", hireDate: "2019-03-01", onVacation: true, storeAddress: "вул. Хрещатик, 10" },
+      { fullName: "Сидоренко Василь Петровича", position: "Охоронець", hireDate: "2022-11-10", onVacation: false, storeAddress: "просп. Науки, 15" }
+    ];
+
+    const storesData = [
+      { name: "Книжковий Рай - Центр", address: "вул. Хрещатик, 10", hasBookcrossing: true, hasReadingRoom: true },
+      { name: "Книжковий Рай - Академічний", address: "просп. Науки, 15", hasBookcrossing: true, hasReadingRoom: false }
+    ];
+
+    // 2. Функція для створення HTML-таблиці з масиву об'єктів
+    function createTable(headers, data, keys) {
+      let table = document.createElement('table');
+      let thead = document.createElement('thead');
+      let tbody = document.createElement('tbody');
+
+      // Створення заголовків таблиці
+      let headerRow = document.createElement('tr');
+      for (let i = 0; i < headers.length; i++) {
+        let th = document.createElement('th');
+        th.textContent = headers[i];
+        headerRow.appendChild(th);
+      }
+      thead.appendChild(headerRow);
+
+      // Створення рядків з даними
+      for (let i = 0; i < data.length; i++) {
+        let row = document.createElement('tr');
+        let item = data[i];
+
+        for (let j = 0; j < keys.length; j++) {
+          let td = document.createElement('td');
+          let val = item[keys[j]];
+
+          // Форматування булевих значень в "Так" / "Ні"
+          if (typeof val === 'boolean') {
+            td.textContent = val ? 'Так' : 'Ні';
+          } else {
+            td.textContent = val;
+          }
+
+          row.appendChild(td);
+        }
+        tbody.appendChild(row);
+      }
+
+      table.appendChild(thead);
+      table.appendChild(tbody);
+      return table;
+    }
+
+    // 3. Рендеринг таблиць у відповідні контейнери
+    function renderAllTables() {
+      // Книги
+      let booksHeaders = ["Код товару", "Назва", "Автор", "Ціна (грн)", "Адреса магазина"];
+      let booksKeys = ["id", "name", "author", "price", "storeAddress"];
+      let booksTable = createTable(booksHeaders, booksData, booksKeys);
+      document.getElementById('books-table-container').appendChild(booksTable);
+
+      // Співробітники
+      let empHeaders = ["ПІБ", "Посада", "Дата найму", "Відпустка", "Адреса магазина"];
+      let empKeys = ["fullName", "position", "hireDate", "onVacation", "storeAddress"];
+      let empTable = createTable(empHeaders, employeesData, empKeys);
+      document.getElementById('employees-table-container').appendChild(empTable);
+
+      // Магазини
+      let storesHeaders = ["Назва", "Адреса магазина", "Наявність буккросінгу", "Наявність читального залу"];
+      let storesKeys = ["name", "address", "hasBookcrossing", "hasReadingRoom"];
+      let storesTable = createTable(storesHeaders, storesData, storesKeys);
+      document.getElementById('stores-table-container').appendChild(storesTable);
+    }
+
+    // 4. Логіка перемикання табів
+    function openTab(event, tabId) {
+      let tabContents = document.querySelectorAll('.tab-content');
+      for (let i = 0; i < tabContents.length; i++) {
+        tabContents[i].classList.remove('active');
+      }
+
+      let tabButtons = document.querySelectorAll('.tab-button');
+      for (let i = 0; i < tabButtons.length; i++) {
+        tabButtons[i].classList.remove('active');
+      }
+
+      document.getElementById(tabId).classList.add('active');
+      event.currentTarget.classList.add('active');
+    }
+
+    // Ініціалізація виводу даних після завантаження сторінки
+    window.onload = function() {
+      renderAllTables();
+    };
+  </script>
+
+</body>
+</html>
+
