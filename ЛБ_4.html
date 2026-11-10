@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Магазин книг</title>
+  <title>Магазин книг — Без автозаповнення</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -108,6 +108,13 @@
 
     tr:hover {
       background-color: #f1f1f1;
+    }
+
+    .empty-message {
+      text-align: center;
+      color: #6c757d;
+      font-style: italic;
+      padding: 20px !important;
     }
 
     .editable-cell {
@@ -283,7 +290,7 @@
 </head>
 <body>
 
-  <h1>Система управління мережею книжкових магазинів</h1>
+  <h1>Система управління книжковим магазином</h1>
 
   <div class="tabs-container">
     <div class="tabs-nav">
@@ -317,14 +324,14 @@
     </div>
   </div>
 
-  <!-- Модальне вікно додавання -->
+  <!-- Модальне вікно додавання з вимкненим автозаповненням -->
   <div id="modal-overlay" class="modal-overlay">
     <div class="modal-content">
       <div class="modal-header">
         <h3 id="modal-title">Додати запис</h3>
         <button class="close-btn" onclick="closeModal()">&times;</button>
       </div>
-      <form id="dynamic-form" onsubmit="handleFormSubmit(event)">
+      <form id="dynamic-form" autocomplete="off" onsubmit="handleFormSubmit(event)">
         <div id="form-fields"></div>
         <div class="form-actions">
           <button type="button" class="btn-cancel" onclick="closeModal()">Скасувати</button>
@@ -338,10 +345,10 @@
   <div id="error-modal-overlay" class="modal-overlay">
     <div class="modal-content error-modal">
       <div class="modal-header">
-        <h3>Помилка видалення!</h3>
+        <h3 id="error-modal-title">Увага!</h3>
         <button class="close-btn" onclick="closeErrorModal()">&times;</button>
       </div>
-      <p id="error-modal-message">Ці дані використовуються в іншій таблиці, тому наразі видалити їх неможливо.</p>
+      <p id="error-modal-message">Виникла помилка під час виконання операції.</p>
       <div class="form-actions">
         <button type="button" class="btn-submit" onclick="closeErrorModal()">Зрозуміло</button>
       </div>
@@ -349,33 +356,13 @@
   </div>
 
   <script>
-    // Початкові дефолтні дані
-    const defaultBooks = [
-      { id: "BK-001", name: "Кобзар", author: "Тарас Шевченко", price: 350, storeAddress: "вул. Хрещатик, 10" },
-      { id: "BK-002", name: "Тіні забутих предків", author: "Михайло Коцюбинський", price: 280, storeAddress: "просп. Науки, 15" },
-      { id: "BK-003", name: "Місто", author: "Валеріян Підмогильний", price: 310, storeAddress: "вул. Хрещатик, 10" }
-    ];
-
-    const defaultEmployees = [
-      { fullName: "Іваненко Іван Іванович", position: "Продавець", hireDate: "2021-05-12", onVacation: false, storeAddress: "вул. Хрещатик, 10" },
-      { fullName: "Петренко Олена Сергіївна", position: "Бухгалтер", hireDate: "2019-03-01", onVacation: true, storeAddress: "вул. Хрещатик, 10" },
-      { fullName: "Сидоренко Василь Петрович", position: "Охоронець", hireDate: "2022-11-10", onVacation: false, storeAddress: "просп. Науки, 15" }
-    ];
-
-    const defaultStores = [
-      { name: "Книжковий Рай - Центр", address: "вул. Хрещатик, 10", hasBookcrossing: true, hasReadingRoom: true },
-      { name: "Книжковий Рай - Академічний", address: "просп. Науки, 15", hasBookcrossing: true, hasReadingRoom: false },
-      { name: "Книжковий Рай - Поділ", address: "вул. Сагайдачного, 22", hasBookcrossing: false, hasReadingRoom: true }
-    ];
-
-    // Робочі масиви даних
     let booksData = [];
     let employeesData = [];
     let storesData = [];
 
     let currentEntity = null;
 
-    // --- 1. Логіка роботи з localStorage та синхронізація між вкладками ---
+    // --- 1. localStorage & Синхронізація ---
 
     function saveDataToLocalStorage() {
       let state = {
@@ -383,11 +370,11 @@
         employees: employeesData,
         stores: storesData
       };
-      localStorage.setItem('bookstore_data', JSON.stringify(state));
+      localStorage.setItem('bookstore_data_v4', JSON.stringify(state));
     }
 
     function loadDataFromLocalStorage() {
-      let saved = localStorage.getItem('bookstore_data');
+      let saved = localStorage.getItem('bookstore_data_v4');
       if (saved) {
         try {
           let parsed = JSON.parse(saved);
@@ -395,29 +382,25 @@
           employeesData = parsed.employees || [];
           storesData = parsed.stores || [];
         } catch(e) {
-          useDefaultData();
+          booksData = [];
+          employeesData = [];
+          storesData = [];
         }
       } else {
-        useDefaultData();
+        booksData = [];
+        employeesData = [];
+        storesData = [];
       }
     }
 
-    function useDefaultData() {
-      booksData = JSON.parse(JSON.stringify(defaultBooks));
-      employeesData = JSON.parse(JSON.stringify(defaultEmployees));
-      storesData = JSON.parse(JSON.stringify(defaultStores));
-      saveDataToLocalStorage();
-    }
-
-    // Автоматична синхронізація при змінах в інших вкладках
     window.addEventListener('storage', function(e) {
-      if (e.key === 'bookstore_data') {
+      if (e.key === 'bookstore_data_v4') {
         loadDataFromLocalStorage();
         renderAllTables();
       }
     });
 
-    // --- 2. Конфігурації та приєднання зв'язаного списку (<select>) ---
+    // --- 2. Конфігурація адрес ---
 
     function getStoreAddresses() {
       let addresses = [];
@@ -438,7 +421,6 @@
             { name: "name", label: "Назва", type: "text", required: true },
             { name: "author", label: "Автор", type: "text", required: true },
             { name: "price", label: "Ціна (грн)", type: "number", required: true },
-            // Поле прив'язане у вигляді випадного списку до сутності "Магазини"
             { name: "storeAddress", label: "Адреса магазина", type: "select", options: currentStoreAddresses, required: true }
           ]
         },
@@ -449,7 +431,6 @@
             { name: "position", label: "Посада", type: "select", options: ["Продавець", "Бухгалтер", "Касир", "Охоронець"], required: true },
             { name: "hireDate", label: "Дата найму", type: "date", required: true },
             { name: "onVacation", label: "У відпустці", type: "checkbox" },
-            // Поле прив'язане у вигляді випадного списку до сутності "Магазини"
             { name: "storeAddress", label: "Адреса магазина", type: "select", options: currentStoreAddresses, required: true }
           ]
         },
@@ -485,48 +466,58 @@
       headerRow.appendChild(actionTh);
       thead.appendChild(headerRow);
 
-      for (let i = 0; i < data.length; i++) {
-        let row = document.createElement('tr');
-        let item = data[i];
+      if (data.length === 0) {
+        let emptyRow = document.createElement('tr');
+        let emptyTd = document.createElement('td');
+        emptyTd.colSpan = headers.length + 1;
+        emptyTd.className = 'empty-message';
+        emptyTd.textContent = 'Дані відсутні. Натисніть "+ Додати", щоб внести перші записи.';
+        emptyRow.appendChild(emptyTd);
+        tbody.appendChild(emptyRow);
+      } else {
+        for (let i = 0; i < data.length; i++) {
+          let row = document.createElement('tr');
+          let item = data[i];
 
-        for (let j = 0; j < keys.length; j++) {
-          let td = document.createElement('td');
-          let key = keys[j];
-          let val = item[key];
+          for (let j = 0; j < keys.length; j++) {
+            let td = document.createElement('td');
+            let key = keys[j];
+            let val = item[key];
 
-          if (typeof val === 'boolean') {
-            td.textContent = val ? 'Так' : 'Ні';
-            td.className = 'editable-cell';
-            td.onclick = function() {
-              item[key] = !item[key];
-              saveDataToLocalStorage();
-              renderAllTables();
-            };
-          } else {
-            td.textContent = val;
-            td.className = 'editable-cell';
-            td.onclick = function() {
-              makeCellEditable(td, item, key, entityType);
-            };
+            if (typeof val === 'boolean') {
+              td.textContent = val ? 'Так' : 'Ні';
+              td.className = 'editable-cell';
+              td.onclick = function() {
+                item[key] = !item[key];
+                saveDataToLocalStorage();
+                renderAllTables();
+              };
+            } else {
+              td.textContent = val;
+              td.className = 'editable-cell';
+              td.onclick = function() {
+                makeCellEditable(td, item, key, entityType);
+              };
+            }
+
+            row.appendChild(td);
           }
 
-          row.appendChild(td);
+          let actionTd = document.createElement('td');
+          actionTd.className = 'action-col';
+          let deleteBtn = document.createElement('button');
+          deleteBtn.className = 'btn-delete';
+          deleteBtn.innerHTML = '&times;';
+          deleteBtn.title = 'Видалити рядок';
+          deleteBtn.onclick = function(e) {
+            e.stopPropagation();
+            deleteRow(entityType, i);
+          };
+
+          actionTd.appendChild(deleteBtn);
+          row.appendChild(actionTd);
+          tbody.appendChild(row);
         }
-
-        let actionTd = document.createElement('td');
-        actionTd.className = 'action-col';
-        let deleteBtn = document.createElement('button');
-        deleteBtn.className = 'btn-delete';
-        deleteBtn.innerHTML = '&times;';
-        deleteBtn.title = 'Видалити рядок';
-        deleteBtn.onclick = function(e) {
-          e.stopPropagation();
-          deleteRow(entityType, i);
-        };
-
-        actionTd.appendChild(deleteBtn);
-        row.appendChild(actionTd);
-        tbody.appendChild(row);
       }
 
       table.appendChild(thead);
@@ -534,7 +525,7 @@
       return table;
     }
 
-    // --- 4. Інтерактивне редагування комірки (включаючи <select> для прив'язаних полів) ---
+    // --- 4. Редагування комірок ---
 
     function makeCellEditable(td, item, key, entityType) {
       if (td.querySelector('input') || td.querySelector('select')) return;
@@ -563,7 +554,6 @@
         renderAllTables();
       }
 
-      // Якщо редагуємо "Адреса магазина" — показуємо випадний список із наявних магазинів
       if (key === 'storeAddress') {
         input = document.createElement('select');
         input.className = 'cell-select';
@@ -584,6 +574,7 @@
       } else {
         input = document.createElement('input');
         input.className = 'cell-input';
+        input.setAttribute('autocomplete', 'off'); // Вимикаємо автозаповнення
         input.type = (key === 'price') ? 'number' : ((key === 'hireDate') ? 'date' : 'text');
         input.value = oldValue;
 
@@ -672,15 +663,17 @@
       let configs = getEntityConfigs();
       let config = configs[entityType];
 
+      if ((entityType === 'books' || entityType === 'employees')) {
+        let storeField = config.fields.find(f => f.name === 'storeAddress');
+        if (!storeField.options || storeField.options.length === 0) {
+          showErrorModal("Спочатку потрібно створити хоча б один магазин у вкладці «Магазини», щоб мати змогу обрати його адресу зі списку!");
+          return;
+        }
+      }
+
       document.getElementById('modal-title').textContent = config.title;
       let fieldsContainer = document.getElementById('form-fields');
       fieldsContainer.innerHTML = '';
-
-      // Перевірка на випадок додавання книги/співробітника, якщо немає створених магазинів
-      if ((entityType === 'books' || entityType === 'employees') && config.fields.find(f => f.name === 'storeAddress').options.length === 0) {
-        showErrorModal("Спочатку потрібно додати хоча б один магазин у відповідній таблиці!");
-        return;
-      }
 
       for (let i = 0; i < config.fields.length; i++) {
         let field = config.fields[i];
@@ -710,6 +703,7 @@
           input = document.createElement('input');
           input.type = field.type;
           input.name = field.name;
+          input.setAttribute('autocomplete', 'off'); // Блокує підказки логінів/імен у браузері
           if (field.type === 'number') {
             input.min = "0";
             input.step = "any";
@@ -776,7 +770,6 @@
       document.getElementById('error-modal-overlay').classList.remove('active');
     }
 
-    // Ініціалізація завантаження сторінки
     window.onload = function() {
       loadDataFromLocalStorage();
       renderAllTables();
